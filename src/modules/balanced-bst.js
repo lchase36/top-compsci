@@ -10,18 +10,62 @@ const Tree = (arr) => {
     };
   };
 
+  const mergeSort = (array) => {
+    if (array.length < 2) return array;
+    const leftLength = Math.floor(array.length / 2);
+    const leftArray = mergeSort(array.slice(0, leftLength));
+    const rightArray = mergeSort(array.slice(leftLength));
+
+    // Merge left and right array
+    const mergedArray = [];
+    let i = 0;
+    let j = 0;
+    while (i < leftArray.length && j < rightArray.length) {
+      if (leftArray[i] <= rightArray[j]) {
+        mergedArray.push(leftArray[i]);
+        i += 1;
+      } else {
+        mergedArray.push(rightArray[j]);
+        j += 1;
+      }
+    }
+
+    // Append any remaining values from longer array
+    if (i < leftArray.length) {
+      mergedArray.push(...leftArray.slice(i));
+    } else if (j < rightArray.length) {
+      mergedArray.push(...rightArray.slice(j));
+    }
+    return mergedArray;
+  };
+  let root;
+
   const buildTree = (array, start, end) => {
     if (start > end) return null;
 
     const mid = Math.floor((start + end) / 2);
-    const root = Node(array[mid]);
+    const tree = Node(array[mid]);
 
-    root.left = buildTree(array, start, mid - 1);
-    root.right = buildTree(array, mid + 1, end);
+    tree.left = buildTree(array, start, mid - 1);
+    tree.right = buildTree(array, mid + 1, end);
 
-    return root;
+    return tree;
   };
-  const root = buildTree(arr, 0, arr.length - 1);
+
+  const createRandomTree = (length) => {
+    const array = Array.from({ length }, () =>
+      Math.floor(Math.random() * length),
+    );
+    const sortedArray = mergeSort(array);
+    const tree = buildTree(sortedArray, 0, sortedArray.length - 1);
+    return tree;
+  };
+
+  if (arr) {
+    root = buildTree(arr, 0, arr.length - 1);
+  } else {
+    root = createRandomTree(100);
+  }
 
   const insertNode = (value, node = root) => {
     const currNode = node;
@@ -192,7 +236,20 @@ const Tree = (arr) => {
     return null;
   };
 
-  const prettyPrint = (node, prefix = "", isLeft = true) => {
+  const isBalanced = (node = root) =>
+    node == null ||
+    (isBalanced(node.left) &&
+      isBalanced(node.right) &&
+      Math.abs(height(node.left) - height(node.right)) <= 1);
+
+  const reBalance = () => {
+    const array = preOrder().map((obj) => obj.data);
+    const sortedArray = mergeSort(array);
+    root = buildTree(sortedArray, 0, sortedArray.length - 1);
+    return root;
+  };
+
+  const prettyPrint = (node = root, prefix = "", isLeft = true) => {
     if (node === null) {
       return;
     }
@@ -206,7 +263,7 @@ const Tree = (arr) => {
   };
 
   return {
-    root,
+    root: () => root,
     insertNode,
     deleteNode,
     find,
@@ -216,6 +273,9 @@ const Tree = (arr) => {
     postOrder,
     height,
     depth,
+    isBalanced,
+    reBalance,
+    createRandomTree,
     prettyPrint,
   };
 };
